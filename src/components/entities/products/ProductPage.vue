@@ -17,16 +17,27 @@
               class="thumbnail-preview"
               @click="openUploadDialog"
             />
-            <v-file-input
-              ref="input"
+            <p>
+              Product Thumbnail (1Mb max)
+            </p>
+            <input
               accept=".png, .jpg, .jpeg"
-              label="Product Thumbnail (1Mb max)"
-              variant="outlined"
-              show-size
-              prepend-icon="mdi-camera"
+              type="file"
+              class="hidden-input"
               @change="uploadImage"
-            >
-            </v-file-input>
+            />
+<!--            <v-file-input-->
+<!--              id="file-input"-->
+<!--              ref="input"-->
+<!--              class="hidden-input"-->
+<!--              accept=".png, .jpg, .jpeg"-->
+<!--              label="Product Thumbnail (1Mb max)"-->
+<!--              variant="outlined"-->
+<!--              show-size-->
+<!--              prepend-icon="mdi-camera"-->
+<!--              @change="uploadImage"-->
+<!--            >-->
+<!--            </v-file-input>-->
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -80,7 +91,7 @@ interface State {
   loading: boolean;
 }
 
-const input = ref(null)
+// const input = ref(null)
 
 const Component = defineComponent({
   name: 'ProductDialog',
@@ -146,15 +157,19 @@ const Component = defineComponent({
 
   methods: {
     openUploadDialog() {
-      console.log(input.value)
-      input.value.click()
+      // console.log(input.value)
+      // input.value.click()
+      const fileInput: HTMLInputElement | any = document.getElementsByClassName('hidden-input')[0]
+      fileInput && fileInput.click()
+      console.log(fileInput)
     },
-    uploadImage(event: any, args) {
+    uploadImage(event: any) {
       const file = event.target.files?.[0];
       if (!file) return;
       if (file.size > this.previewImageMaxSize) {
         dispatchAlert(AlertColor.ERROR, 'File is too big');
         event.target.value = '';
+        event.target.files = [];
       }
       this.state.entity.previewImage = file;
       const reader = new FileReader();
@@ -178,5 +193,4 @@ export default Component;
 .hidden-input {
   display: none;
 }
-
 </style>
