@@ -11,6 +11,35 @@
       <div>
         <v-row align="start">
           <v-col cols="12">
+            <VuetifyImage
+              :src="state.entity.previewImage"
+              size="250"
+              class="thumbnail-preview"
+              @click="openUploadDialog"
+            />
+            <p>
+              Product Thumbnail (1Mb max)
+            </p>
+            <input
+              accept=".png, .jpg, .jpeg"
+              type="file"
+              class="hidden-input"
+              @change="uploadImage"
+            />
+<!--            <v-file-input-->
+<!--              id="file-input"-->
+<!--              ref="input"-->
+<!--              class="hidden-input"-->
+<!--              accept=".png, .jpg, .jpeg"-->
+<!--              label="Product Thumbnail (1Mb max)"-->
+<!--              variant="outlined"-->
+<!--              show-size-->
+<!--              prepend-icon="mdi-camera"-->
+<!--              @change="uploadImage"-->
+<!--            >-->
+<!--            </v-file-input>-->
+          </v-col>
+          <v-col cols="12">
             <v-text-field
               v-model="state.entity.name"
               label="Name"
@@ -54,16 +83,21 @@ import { defineComponent, onBeforeMount, reactive, watch, computed, ref, Ref } f
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { Product } from '../../../models/entities/Product';
+import {AlertColor, dispatchAlert} from "@/utils/alerts";
+import VuetifyImage from "@/components/common/VuetifyImage.vue";
 
 interface State {
   entity: Product;
   loading: boolean;
 }
 
+// const input = ref(null)
+
 const Component = defineComponent({
   name: 'ProductDialog',
 
   components: {
+    VuetifyImage,
     EntityPage,
   },
 
@@ -78,6 +112,7 @@ const Component = defineComponent({
     const store = useStore();
     const router = useRouter();
     const product = new Product({});
+    const previewImageMaxSize = 1000000;
     const isNew = () => !props.id;
     let listCategory: Ref<string[]> = ref([]);
     onBeforeMount(async () => {
@@ -107,7 +142,7 @@ const Component = defineComponent({
       return getSelectedItem.name;
     });
     const rules = {
-      name: [(v: string) => !!v || 'Name is required'],
+      name: [(v: string) => !!v || 'Name is required']
     };
 
     return {
@@ -116,10 +151,46 @@ const Component = defineComponent({
       rules,
       isNew,
       listCategory,
+      previewImageMaxSize,
     };
   },
+
+  methods: {
+    openUploadDialog() {
+      // console.log(input.value)
+      // input.value.click()
+      const fileInput: HTMLInputElement | any = document.getElementsByClassName('hidden-input')[0]
+      fileInput && fileInput.click()
+      console.log(fileInput)
+    },
+    uploadImage(event: any) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.size > this.previewImageMaxSize) {
+        dispatchAlert(AlertColor.ERROR, 'File is too big');
+        event.target.value = '';
+        event.target.files = [];
+      }
+      this.state.entity.previewImage = file;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        this.state.entity.previewImage = reader.result
+      }
+      reader.readAsDataURL(file);
+    },
+  }
 });
+
 export default Component;
 </script>
-
-<style scoped></style>
+<style scoped>
+.thumbnail-preview {
+  height: 250px;
+  width: 250px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.hidden-input {
+  display: none;
+}
+</style>
